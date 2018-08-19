@@ -1,0 +1,264 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="DataModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityContainer Name="DataModelStoreContainer">
+          <EntitySet Name="Job" EntityType="DataModel.Store.Job" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="JobParam" EntityType="DataModel.Store.JobParam" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="JobType" EntityType="DataModel.Store.JobType" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Log" EntityType="DataModel.Store.Log" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_Job_JobType" Association="DataModel.Store.FK_Job_JobType">
+            <End Role="JobType" EntitySet="JobType" />
+            <End Role="Job" EntitySet="Job" />
+          </AssociationSet>
+          <AssociationSet Name="FK_JobParam_Job" Association="DataModel.Store.FK_JobParam_Job">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="JobParam" EntitySet="JobParam" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Job">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="GroupName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="JobName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="Details" Type="nvarchar" Nullable="false" MaxLength="500" />
+          <Property Name="TypeID" Type="int" Nullable="false" />
+          <Property Name="JobType" Type="nvarchar" Nullable="false" MaxLength="250" />
+          <Property Name="CronExpression" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="TriggerName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="TriggerGroup" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="Enabled" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="JobParam">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="JobID" Type="int" Nullable="false" />
+          <Property Name="ParamKey" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="ParamValue" Type="nvarchar" Nullable="false" MaxLength="250" />
+        </EntityType>
+        <EntityType Name="JobType">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="TypeName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="TypeAssembly" Type="nvarchar" MaxLength="50" />
+          <Property Name="ParamKeys" Type="nvarchar" Nullable="false" MaxLength="250" />
+        </EntityType>
+        <EntityType Name="Log">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="Date" Type="datetime" />
+          <Property Name="Thread" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Level" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Location" Type="nvarchar" MaxLength="1000" />
+          <Property Name="Message" Type="nvarchar" MaxLength="1000" />
+        </EntityType>
+        <Association Name="FK_Job_JobType">
+          <End Role="JobType" Type="DataModel.Store.JobType" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Job" Type="DataModel.Store.Job" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="JobType">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="Job">
+              <PropertyRef Name="TypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_JobParam_Job">
+          <End Role="Job" Type="DataModel.Store.Job" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="JobParam" Type="DataModel.Store.JobParam" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="JobParam">
+              <PropertyRef Name="JobID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="DataModel" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="DataEntities" p1:LazyLoadingEnabled="true">
+          <EntitySet Name="Jobs" EntityType="DataModel.Job" />
+          <EntitySet Name="JobParams" EntityType="DataModel.JobParam" />
+          <EntitySet Name="JobTypes" EntityType="DataModel.JobType" />
+          <AssociationSet Name="FK_Job_JobType" Association="DataModel.FK_Job_JobType">
+            <End Role="JobType" EntitySet="JobTypes" />
+            <End Role="Job" EntitySet="Jobs" />
+          </AssociationSet>
+          <AssociationSet Name="FK_JobParam_Job" Association="DataModel.FK_JobParam_Job">
+            <End Role="Job" EntitySet="Jobs" />
+            <End Role="JobParam" EntitySet="JobParams" />
+          </AssociationSet>
+          <EntitySet Name="Logs" EntityType="DataModel.Log" />
+        </EntityContainer>
+        <EntityType Name="Job">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="TypeID" Type="Int32" Nullable="false" />
+          <Property Name="GroupName" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="JobName" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="JobType" Type="String" Nullable="false" MaxLength="250" Unicode="true" FixedLength="false" />
+          <Property Name="CronExpression" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="TriggerGroup" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="Enabled" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="Type" Relationship="DataModel.FK_Job_JobType" FromRole="Job" ToRole="JobType" />
+          <NavigationProperty Name="JobParams" Relationship="DataModel.FK_JobParam_Job" FromRole="Job" ToRole="JobParam" />
+          <Property Type="String" Name="Details" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="TriggerName" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="JobParam">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="JobID" Type="Int32" Nullable="false" />
+          <Property Name="ParamKey" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="ParamValue" Type="String" Nullable="false" MaxLength="250" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Job" Relationship="DataModel.FK_JobParam_Job" FromRole="JobParam" ToRole="Job" />
+        </EntityType>
+        <EntityType Name="JobType">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="TypeName" Type="String" Nullable="false" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="TypeAssembly" Type="String" MaxLength="50" Unicode="true" FixedLength="false" />
+          <Property Name="ParamKeys" Type="String" Nullable="false" MaxLength="250" Unicode="true" FixedLength="false" />
+          <NavigationProperty Name="Jobs" Relationship="DataModel.FK_Job_JobType" FromRole="JobType" ToRole="Job" />
+        </EntityType>
+        <Association Name="FK_Job_JobType">
+          <End Role="JobType" Type="DataModel.JobType" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="Job" Type="DataModel.Job" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="JobType">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="Job">
+              <PropertyRef Name="TypeID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_JobParam_Job">
+          <End Role="Job" Type="DataModel.Job" Multiplicity="1">
+            <OnDelete Action="Cascade" />
+          </End>
+          <End Role="JobParam" Type="DataModel.JobParam" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Job">
+              <PropertyRef Name="ID" />
+            </Principal>
+            <Dependent Role="JobParam">
+              <PropertyRef Name="JobID" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Log">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Type="Int32" Name="ID" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Type="DateTime" Name="Date" Precision="3" />
+          <Property Type="String" Name="Thread" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Level" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Location" MaxLength="1000" FixedLength="false" Unicode="true" />
+          <Property Type="String" Name="Message" MaxLength="1000" FixedLength="false" Unicode="true" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="DataModelStoreContainer" CdmEntityContainer="DataEntities">
+          <EntitySetMapping Name="Jobs">
+            <EntityTypeMapping TypeName="DataModel.Job">
+              <MappingFragment StoreEntitySet="Job">
+                <ScalarProperty Name="TriggerName" ColumnName="TriggerName" />
+                <ScalarProperty Name="Details" ColumnName="Details" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="TypeID" ColumnName="TypeID" />
+                <ScalarProperty Name="GroupName" ColumnName="GroupName" />
+                <ScalarProperty Name="JobName" ColumnName="JobName" />
+                <ScalarProperty Name="JobType" ColumnName="JobType" />
+                <ScalarProperty Name="CronExpression" ColumnName="CronExpression" />
+                <ScalarProperty Name="TriggerGroup" ColumnName="TriggerGroup" />
+                <ScalarProperty Name="Enabled" ColumnName="Enabled" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="JobParams">
+            <EntityTypeMapping TypeName="DataModel.JobParam">
+              <MappingFragment StoreEntitySet="JobParam">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="JobID" ColumnName="JobID" />
+                <ScalarProperty Name="ParamKey" ColumnName="ParamKey" />
+                <ScalarProperty Name="ParamValue" ColumnName="ParamValue" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="JobTypes">
+            <EntityTypeMapping TypeName="DataModel.JobType">
+              <MappingFragment StoreEntitySet="JobType">
+                <ScalarProperty Name="ID" ColumnName="ID" />
+                <ScalarProperty Name="TypeName" ColumnName="TypeName" />
+                <ScalarProperty Name="TypeAssembly" ColumnName="TypeAssembly" />
+                <ScalarProperty Name="ParamKeys" ColumnName="ParamKeys" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Logs">
+            <EntityTypeMapping TypeName="DataModel.Log">
+              <MappingFragment StoreEntitySet="Log">
+                <ScalarProperty Name="Message" ColumnName="Message" />
+                <ScalarProperty Name="Location" ColumnName="Location" />
+                <ScalarProperty Name="Level" ColumnName="Level" />
+                <ScalarProperty Name="Thread" ColumnName="Thread" />
+                <ScalarProperty Name="Date" ColumnName="Date" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

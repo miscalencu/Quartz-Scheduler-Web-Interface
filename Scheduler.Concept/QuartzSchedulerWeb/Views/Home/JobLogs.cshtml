@@ -1,0 +1,98 @@
+﻿@model IEnumerable<QuartzSchedulerWeb.Models.Log>
+@{
+	Layout = null;
+}
+
+<div class="modal-header">
+	<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+	<h4 class="modal-title" id="myModalLabel">View Logs for <b>@ViewBag.Group.@ViewBag.Name</b> (last 100 records)</h4>
+</div>
+<div class="modal-body">
+
+	<table class="table table-condensed table-bordered">
+		<tr class="info">
+			<th style="white-space:nowrap"> 
+				@Html.DisplayNameFor(model => model.Date)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Thread)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Level)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Location)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Message)
+			</th>
+		</tr>
+	@if (Model.Count() == 0)
+	{ 
+		<tr>
+			<td colspan="6" class="text-center">There are no records!</td>
+		</tr>
+	}
+
+	@foreach (var item in Model) {
+		<tr>
+			<td style="white-space:nowrap">
+				<b>@Html.DisplayFor(modelItem => item.Date)</b>
+			</td>
+			<td style="white-space:nowrap">
+				@Html.DisplayFor(modelItem => item.Thread)
+			</td>
+			<td style="white-space:nowrap">
+				@{
+				string label = "default";
+		
+				switch(item.Level.ToUpper().Trim()){
+					case "ALL":
+						break;
+					case "DEBUG":
+						label = "warning";
+						break;
+					case "INFO":
+						label = "info";
+						break;
+					case "WARN":
+						label = "danger";
+						break;
+					case "ERROR":
+						label = "danger";
+						break;
+					case "FATAL":
+						label = "danger";
+						break;
+					case "OFF":
+						label = "default";
+						break;
+					default:
+						break;
+					}
+				}
+				<span class="label label-@label">@item.Level</span>
+			</td>
+			<td>
+				<small>@Html.Raw(item.Location.Replace("(", "<br />("))</small>
+			</td>
+			<td>
+				<small>@Html.DisplayFor(modelItem => item.Message)</small>
+			</td>
+		</tr>
+	}
+
+</table>
+
+</div>
+<div class="modal-footer">
+	<button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+</div>
+
+<script>
+
+	$(document).ready(function () {
+		$(".modal-lg").css("width", $(document).width() - 100);
+	});
+
+</script>

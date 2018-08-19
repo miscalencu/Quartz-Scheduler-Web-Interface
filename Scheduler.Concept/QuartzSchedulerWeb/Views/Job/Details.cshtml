@@ -1,0 +1,96 @@
+﻿@model QuartzSchedulerWeb.Models.Job
+@using System.Collections;
+@using QuartzSchedulerWeb.Models;
+@{
+    ViewBag.Title = "View job details";
+}
+
+<h2>View job details</h2>
+<br />
+
+<div>
+    <dl class="dl-horizontal">
+
+		<dt>
+            @Html.DisplayNameFor(model => model.ID)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.ID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.JobName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.JobName)
+        </dd>
+
+		<dt>
+            @Html.DisplayNameFor(model => model.Details)
+        </dt>
+        <dd>
+            @Html.Raw(Model.Details.Replace(Environment.NewLine, "<br />"))
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.GroupName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.GroupName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TypeID)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.JobType) (@Model.Type.TypeName)
+        </dd>
+
+		@if (@Model.JobParams != null && @Model.JobParams.Count > 0) 
+		{ 
+			<dt>Parameters</dt>
+			<dd>
+				@foreach (var param in @Model.JobParams)
+				{
+					@param.ParamKey @:= @param.ParamValue<br />
+				}
+			</dd>
+		}
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CronExpression)
+        </dt>
+
+        <dd>
+			@QuartzSchedulerWeb.Classes.QuartzHelper.GetCronExpressionDescription(Model.CronExpression)<br />
+            <kbd>@Html.DisplayFor(model => model.CronExpression)</kbd>
+        </dd>
+
+		<dt>
+            @Html.DisplayNameFor(model => model.TriggerName)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.TriggerName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TriggerGroup)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.TriggerGroup)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Enabled)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Enabled)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ID }, new { @class="btn btn-danger" }) 
+    @Html.ActionLink("<< Back to List", "Index", null, new { @class="btn btn-info" })
+</p>

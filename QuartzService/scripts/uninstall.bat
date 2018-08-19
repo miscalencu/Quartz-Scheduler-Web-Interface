@@ -1,0 +1,1 @@
+..\Quartz.Server.exe uninstall
