@@ -39,5 +39,18 @@ namespace QuartzSchedulerWeb.Classes
 				return "Invalid format!";
 			}
 		}
-	}
+
+        public static int GetTotalJobs(IScheduler scheduler)
+        {
+            int total = 0;
+            foreach (string jobGroup in scheduler.GetJobGroupNames().Result)
+            {
+                var groupMatcher = Quartz.Impl.Matchers.GroupMatcher<JobKey>.GroupEquals(jobGroup);
+                total += scheduler.GetJobKeys(groupMatcher).Result.Count;
+            }
+
+            return total;
+        }
+
+    }
 }

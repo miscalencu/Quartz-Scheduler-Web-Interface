@@ -88,8 +88,18 @@
                 @Html.ValidationMessageFor(model => model.CronExpression)
             </div>
         </div>
+        
+        <div class="form-group">
+            @Html.LabelFor(model => model.Priority, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.DropDownListFor(model => model.Priority, Enumerable.Range(1, 10).Select(o => new SelectListItem() { Text = o.ToString(), Value = o.ToString() }), new { @class = "form-control col-md-2" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.Priority)
+            </div>
+        </div>
 
-		<div class="form-group">
+		<div class="form-group" id="triggername">
             @Html.LabelFor(model => model.TriggerName, new { @class = "control-label col-md-2" })
             <div class="col-md-4">
                 @Html.TextBoxFor(model => model.TriggerName, new { @class = "form-control col-md-2" })
@@ -99,7 +109,7 @@
             </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="triggergroup">
             @Html.LabelFor(model => model.TriggerGroup, new { @class = "control-label col-md-2" })
             <div class="col-md-4">
                 @Html.TextBoxFor(model => model.TriggerGroup, new { @class = "form-control col-md-2" })
@@ -134,7 +144,19 @@
 <script>
 
 	var jtypes = new Array();
-	$(document).ready(function () {
+    $(document).ready(function () {
+
+        // make TriggerName = JobName and TriggerGroup = JobGroup
+        $("#triggername").hide();
+        $("#triggergroup").hide();
+        $("#JobName").on("change", function () {
+            $("#TriggerName").val($(this).val());
+        });
+        $("#GroupName").on("change", function () {
+            $("#TriggerGroup").val($(this).val());
+        });
+
+
 		$("#divJobType").hide();
 		$("#divJobTypeParams").hide();
 		$("#CronExpression").css({"top": "-1000px", "left":"-1000px", "position": "absolute"});

@@ -21,9 +21,26 @@ namespace QuartzSchedulerWeb.Controllers
 
 		//
         // GET: /Job/
-        public ActionResult Index()
+        public ActionResult Index(string group)
         {
-			return View(db.Jobs.Include("JobParams"));
+			//return View(db.Jobs.Include("JobParams"));
+            try
+            {
+                List<SelectListItem> items = db.Jobs.Select(o => new SelectListItem() { Text = o.GroupName, Value = o.GroupName }).Distinct().OrderBy(o => o.Text).ToList();
+                ViewBag.Groups = items;
+                if (group == null && items.Count() > 0)
+                {
+                    group = items.First().Text;
+                }
+                ViewBag.Group = group;
+                return View(db.Jobs.Include("JobParams").ToList());
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorDetails"] = ex.Message;
+                return View();
+            }
+
         }
 
         //
@@ -92,8 +109,22 @@ namespace QuartzSchedulerWeb.Controllers
 
                 return RedirectToAction("Index");
             }
+            else
+            {
+                foreach (ModelState modelState in ViewData.ModelState.Values)
+                {
+                    foreach (ModelError error in modelState.Errors)
+                    {
+                        if (error != null)
+                        {
 
-			ViewBag.JobTypes = db.JobTypes.OrderBy(o => o.TypeName);
+                        }
+                    }
+                }
+            }
+
+
+            ViewBag.JobTypes = db.JobTypes.OrderBy(o => o.TypeName);
 			return View();
         }
 
@@ -165,10 +196,10 @@ namespace QuartzSchedulerWeb.Controllers
 				if (submit == "Update and sync")
 					return RedirectToAction("SyncJobs", new { id = model.ID });
 				else
-					return RedirectToAction("Index");
+                    return RedirectToAction("Index", new { group = model.GroupName });
             }
 
-			ViewBag.JobTypes = db.JobTypes.OrderBy(o => o.TypeName);
+            ViewBag.JobTypes = db.JobTypes.OrderBy(o => o.TypeName);
 			return View(db.Jobs.Where(o => o.ID == model.ID).Single());
         }
 
@@ -203,8 +234,9 @@ namespace QuartzSchedulerWeb.Controllers
 
 		public async Task<ActionResult> SyncJobs(int ID = 0)
 		{
-			try
-			{
+            string _group = "";
+            try
+            {
 				// get all jobs from db
 				IEnumerable<Job> jobs = db.Jobs.Include("JobParams");
 
@@ -256,23 +288,28 @@ namespace QuartzSchedulerWeb.Controllers
 						.WithCronSchedule(job.CronExpression)
 						.Build();
 
-					sched.ScheduleJob(sjob, strigger);
+                    if (ID > 0)
+                    {
+                        _group = job.GroupName;
+                    }
+
+                    await sched.ScheduleJob(sjob, strigger);
 				}
 			}
 			catch (System.Net.Sockets.SocketException)
 			{
-				return RedirectToAction("Index", "Home");
-			}
-			catch (Quartz.SchedulerException)
+                return RedirectToAction("Index", "Home", new { group = _group });
+            }
+            catch (Quartz.SchedulerException)
 			{
 				TempData["ErrorDetails"] = @"There was an error syncing jobs! Please consider using the <a href=""" + Url.Action("SyncJobs", new { id = 0 }) + @""">Sync All</a> feature if you recently changed the job name, group, trigger or trigger group. This is normal behavior in this case";
 				return RedirectToAction("Index", "Home");
 			}
-			
-			return RedirectToAction("Index", "Home");
-		}
 
-		public JsonResult IsJobUnique(string JobName, string GroupName, int ID)
+            return RedirectToAction("Index", "Home", new { group = _group });
+        }
+
+        public JsonResult IsJobUnique(string JobName, string GroupName, int ID)
 		{
 			return Json(!db.Jobs.Where(o => o.ID != ID).Any(o => o.JobName.ToLower().Trim() == JobName.ToLower().Trim() && o.GroupName.ToLower().Trim() == GroupName.ToLower().Trim()), JsonRequestBehavior.AllowGet);
 		}

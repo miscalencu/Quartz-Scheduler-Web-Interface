@@ -4,59 +4,46 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="DataModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-        <EntityContainer Name="DataModelStoreContainer">
-          <EntitySet Name="Job" EntityType="DataModel.Store.Job" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="JobParam" EntityType="DataModel.Store.JobParam" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="JobType" EntityType="DataModel.Store.JobType" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="Log" EntityType="DataModel.Store.Log" store:Type="Tables" Schema="dbo" />
-          <AssociationSet Name="FK_Job_JobType" Association="DataModel.Store.FK_Job_JobType">
-            <End Role="JobType" EntitySet="JobType" />
-            <End Role="Job" EntitySet="Job" />
-          </AssociationSet>
-          <AssociationSet Name="FK_JobParam_Job" Association="DataModel.Store.FK_JobParam_Job">
-            <End Role="Job" EntitySet="Job" />
-            <End Role="JobParam" EntitySet="JobParam" />
-          </AssociationSet>
-        </EntityContainer>
+    <Schema Namespace="DataModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Job">
           <Key>
             <PropertyRef Name="ID" />
           </Key>
-          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="GroupName" Type="nvarchar" Nullable="false" MaxLength="50" />
-          <Property Name="JobName" Type="nvarchar" Nullable="false" MaxLength="50" />
-          <Property Name="Details" Type="nvarchar" Nullable="false" MaxLength="500" />
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="GroupName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="JobName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Details" Type="nvarchar" MaxLength="500" Nullable="false" />
           <Property Name="TypeID" Type="int" Nullable="false" />
-          <Property Name="JobType" Type="nvarchar" Nullable="false" MaxLength="250" />
-          <Property Name="CronExpression" Type="nvarchar" Nullable="false" MaxLength="50" />
-          <Property Name="TriggerName" Type="nvarchar" Nullable="false" MaxLength="50" />
-          <Property Name="TriggerGroup" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="JobType" Type="nvarchar" MaxLength="250" Nullable="false" />
+          <Property Name="CronExpression" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="Priority" Type="int" Nullable="false" />
+          <Property Name="TriggerName" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="TriggerGroup" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="Enabled" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="JobParam">
           <Key>
             <PropertyRef Name="ID" />
           </Key>
-          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="JobID" Type="int" Nullable="false" />
-          <Property Name="ParamKey" Type="nvarchar" Nullable="false" MaxLength="50" />
-          <Property Name="ParamValue" Type="nvarchar" Nullable="false" MaxLength="250" />
+          <Property Name="ParamKey" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ParamValue" Type="nvarchar" MaxLength="250" Nullable="false" />
         </EntityType>
         <EntityType Name="JobType">
           <Key>
             <PropertyRef Name="ID" />
           </Key>
-          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="TypeName" Type="nvarchar" Nullable="false" MaxLength="50" />
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="TypeName" Type="nvarchar" MaxLength="50" Nullable="false" />
           <Property Name="TypeAssembly" Type="nvarchar" MaxLength="50" />
-          <Property Name="ParamKeys" Type="nvarchar" Nullable="false" MaxLength="250" />
+          <Property Name="ParamKeys" Type="nvarchar" MaxLength="250" Nullable="false" />
         </EntityType>
         <EntityType Name="Log">
           <Key>
             <PropertyRef Name="ID" />
           </Key>
-          <Property Name="ID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="Date" Type="datetime" />
           <Property Name="Thread" Type="nvarchar" MaxLength="1000" />
           <Property Name="Level" Type="nvarchar" MaxLength="1000" />
@@ -64,10 +51,10 @@
           <Property Name="Message" Type="nvarchar" MaxLength="1000" />
         </EntityType>
         <Association Name="FK_Job_JobType">
-          <End Role="JobType" Type="DataModel.Store.JobType" Multiplicity="1">
+          <End Role="JobType" Type="Self.JobType" Multiplicity="1">
             <OnDelete Action="Cascade" />
           </End>
-          <End Role="Job" Type="DataModel.Store.Job" Multiplicity="*" />
+          <End Role="Job" Type="Self.Job" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="JobType">
               <PropertyRef Name="ID" />
@@ -78,10 +65,10 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_JobParam_Job">
-          <End Role="Job" Type="DataModel.Store.Job" Multiplicity="1">
+          <End Role="Job" Type="Self.Job" Multiplicity="1">
             <OnDelete Action="Cascade" />
           </End>
-          <End Role="JobParam" Type="DataModel.Store.JobParam" Multiplicity="*" />
+          <End Role="JobParam" Type="Self.JobParam" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Job">
               <PropertyRef Name="ID" />
@@ -91,6 +78,20 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityContainer Name="DataModelStoreContainer">
+          <EntitySet Name="Job" EntityType="Self.Job" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="JobParam" EntityType="Self.JobParam" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="JobType" EntityType="Self.JobType" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Log" EntityType="Self.Log" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_Job_JobType" Association="Self.FK_Job_JobType">
+            <End Role="JobType" EntitySet="JobType" />
+            <End Role="Job" EntitySet="Job" />
+          </AssociationSet>
+          <AssociationSet Name="FK_JobParam_Job" Association="Self.FK_JobParam_Job">
+            <End Role="Job" EntitySet="Job" />
+            <End Role="JobParam" EntitySet="JobParam" />
+          </AssociationSet>
+        </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
@@ -125,6 +126,7 @@
           <NavigationProperty Name="JobParams" Relationship="DataModel.FK_JobParam_Job" FromRole="Job" ToRole="JobParam" />
           <Property Type="String" Name="Details" Nullable="false" MaxLength="500" FixedLength="false" Unicode="true" />
           <Property Type="String" Name="TriggerName" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Priority" Type="Int32" Nullable="false" />
         </EntityType>
         <EntityType Name="JobParam">
           <Key>
@@ -194,6 +196,7 @@
           <EntitySetMapping Name="Jobs">
             <EntityTypeMapping TypeName="DataModel.Job">
               <MappingFragment StoreEntitySet="Job">
+                <ScalarProperty Name="Priority" ColumnName="Priority" />
                 <ScalarProperty Name="TriggerName" ColumnName="TriggerName" />
                 <ScalarProperty Name="Details" ColumnName="Details" />
                 <ScalarProperty Name="ID" ColumnName="ID" />
@@ -256,6 +259,7 @@
         <DesignerProperty Name="EnablePluralization" Value="True" />
         <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
         <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+        <DesignerProperty Name="UseLegacyProvider" Value="True" />
       </DesignerInfoPropertySet>
     </Options>
     <!-- Diagram content (shape and connector positions) -->

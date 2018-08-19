@@ -29,6 +29,7 @@ namespace QuartzSchedulerWeb.Models
         public bool Enabled { get; set; }
         public string Details { get; set; }
         public string TriggerName { get; set; }
+        public int Priority { get; set; }
     
         public virtual JobType Type { get; set; }
         public virtual ICollection<JobParam> JobParams { get; set; }

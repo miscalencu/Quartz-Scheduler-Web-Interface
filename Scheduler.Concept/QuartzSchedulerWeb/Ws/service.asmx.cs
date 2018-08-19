@@ -20,7 +20,7 @@ namespace QuartzSchedulerWeb.Ws
 		[WebMethod]
 		public string HelloWorld(string param)
 		{
-			Thread.Sleep(10 * 60 * 1000); // 10 minutes
+			Thread.Sleep(1 * 60 * 1000); // 1 minute
 			return "Hello World. Param: " + param;
 		}
 	}

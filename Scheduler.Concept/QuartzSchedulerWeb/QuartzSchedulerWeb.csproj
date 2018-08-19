@@ -123,6 +123,7 @@
     <Content Include="fonts\glyphicons-halflings-regular.eot" />
     <Content Include="Content\bootstrap-theme.css.map" />
     <Content Include="Content\bootstrap.css.map" />
+    <Content Include="Scripts\functions.js" />
     <Content Include="Ws\service.asmx" />
     <EntityDeploy Include="Models\SchedulerModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
@@ -164,9 +165,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\RouteConfig.cs" />
+    <Compile Include="Classes\Display.cs" />
     <Compile Include="Classes\Job.cs" />
     <Compile Include="Classes\QuartzHelper.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\InstanceJobController.cs" />
     <Compile Include="Controllers\JobController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -217,6 +220,7 @@
     <Content Include="Views\Job\Delete.cshtml" />
     <Content Include="Views\Home\RunningJobs.cshtml" />
     <Content Include="Views\Home\JobLogs.cshtml" />
+    <Content Include="Views\InstanceJob\Logs.cshtml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

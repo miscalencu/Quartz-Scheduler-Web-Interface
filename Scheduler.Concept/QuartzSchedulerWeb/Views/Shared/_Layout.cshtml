@@ -5,18 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewBag.Title | Quartz Scheduler</title>
 
-	<script src="~/Scripts/jquery-2.1.1.min.js"></script>
-	<script src="~/Scripts/jquery-migrate-1.2.1.js"></script>
-	<script src="~/Scripts/bootstrap.min.js"></script>
-	<script src="~/Scripts/jquery.validate.min.js"></script>
-	<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
-	<script src="~/Scripts/modernizr-2.8.3.js"></script>
+    <script src="~/Scripts/jquery-2.1.1.min.js"></script>
+    <script src="~/Scripts/jquery-migrate-1.2.1.js"></script>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+    <script src="~/Scripts/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/modernizr-2.8.3.js"></script>
+    <script src="~/Scripts/functions.js"></script>
 
-	<link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/site.css" rel="stylesheet" type="text/css" />
 
-	<link rel="shortcut icon" href="~/favicon.ico" />
-	<link rel="icon" type="image/vnd.microsoft.icon" href="~/favicon.ico" />
+    <link rel="shortcut icon" href="~/favicon.ico" />
+    <link rel="icon" type="image/vnd.microsoft.icon" href="~/favicon.ico" />
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -27,11 +28,17 @@
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                @Html.ActionLink("Service", "Index", "Home", null, new { @class = "navbar-brand menu_service" })
-				@Html.ActionLink("Jobs", "Index", "Job", null, new { @class = "navbar-brand menu_jobs" })
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
+                    @Html.ActionLink("Service status", "Index", "Home", null, new { @class = "navbar-brand menu_service" })
+                    @Html.ActionLink("Jobs", "Index", "Job", null, new { @class = "navbar-brand menu_jobs" })
+                </ul>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li></li>
+                    <li></li>
                 </ul>
             </div>
         </div>

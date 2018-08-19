@@ -5,30 +5,61 @@
 @using QuartzSchedulerWeb.Classes;
 @{
     ViewBag.Title = "Service status";
+    string group = (string)ViewBag.Group;
 }
 
 <h2>Service status</h2>
 <br />
 
-@if (Model == null) { 
-	<div class="alert alert-danger" role="alert">
-		<p><span class="glyphicon glyphicon-remove-circle"></span>  <b>Error:</b> @ViewBag.ErrorDetails.</p>
-		<p>Please make sure that the <b>QuartzScheduler</b> service is installed and it is started! The connection used is <kbd>@System.Configuration.ConfigurationManager.AppSettings["Quartz_ProxyAddress"]</kbd>.</p>
-	</div>
+@if (Model == null)
+{
+    <div class="alert alert-danger" role="alert">
+        <p><span class="glyphicon glyphicon-remove-circle"></span>  <b>Error:</b> @ViewBag.ErrorDetails.</p>
+        <p>Please make sure that the <b>QuartzScheduler</b> service is installed and it is started! The connection used is <kbd>@System.Configuration.ConfigurationManager.AppSettings["Quartz_ProxyAddress"]</kbd>.</p>
+    </div>
 }
-else {
-	<div class="alert alert-success" role="alert">
-		<p><span class="glyphicon glyphicon-ok-circle"></span> <b>@Model.SchedulerName is live!</b> The connection used is <kbd>@System.Configuration.ConfigurationManager.AppSettings["Quartz_ProxyAddress"]</kbd>.</p>
-	</div>
-	
-	<p class="alert alert-info">
-		<b>Instance Name:</b> @Model.SchedulerName<br />
-		<b>Started:</b> <span class="glyphicon glyphicon-@((Model.IsStarted && !Model.InStandbyMode)?"ok":"remove")"></span><br />
+else
+{
+    SchedulerMetaData data = Model.GetMetaData().Result;
 
-		<br />
+    <div class="alert alert-success" role="alert">
+        <p>
+            <span class="glyphicon glyphicon-ok-circle"></span> <b>@Model.SchedulerName is live!</b>
+            The connection used is <kbd>@System.Configuration.ConfigurationManager.AppSettings["Quartz_ProxyAddress"]</kbd>.
+        </p>
+    </div>
 
-		@Html.ActionLink(((Model.IsStarted && !Model.InStandbyMode)?"Stop Scheduler":"Start Scheduler"), "StopScheduler", "Home", null, new { @class = ((Model.IsStarted && !Model.InStandbyMode)?"btn btn-danger":"btn btn-primary") })
-	</p>
+    <div class="alert alert-info">
+        <table style="width:100%">
+            <tr>
+                <th style="min-width: 20%;">Instance Name</th>
+                <td style="min-width: 30%;">@Model.SchedulerName</td>
+                <th style="min-width: 20%;">Running since</th>
+                <td style="min-width: 30%;">@Display.DateTime(data.RunningSince.Value.LocalDateTime)</td>
+            </tr>
+            <tr>
+                <th>Instance ID</th>
+                <td>@Model.SchedulerInstanceId</td>
+                <th>Total jobs</th>
+                <td>@QuartzHelper.GetTotalJobs(Model)</td>
+            </tr>
+            <tr>
+                <th>Started</th>
+                <td><span class="glyphicon glyphicon-@((Model.IsStarted && !Model.InStandbyMode)?"ok":"remove")"></span></td>
+                <th>Executed jobs</th>
+                <td>@data.NumberOfJobsExecuted</td>
+            </tr>
+            <tr>
+                <th>Is Remote</th>
+                <td>@Model.GetMetaData().Result.SchedulerRemote</td>
+                <th>Version</th>
+                <td>@data.Version</td>
+            </tr>
+        </table>
+        <br />
+
+        @Html.ActionLink(((Model.IsStarted && !Model.InStandbyMode) ? "Stop Scheduler" : "Start Scheduler"), "StopScheduler", "Home", null, new { @class = ((Model.IsStarted && !Model.InStandbyMode) ? "btn btn-danger" : "btn btn-primary") })
+    </div>
 
     {
         IReadOnlyCollection<string> jobGroups = Model.GetJobGroupNames().Result;
@@ -36,168 +67,224 @@ else {
 
         if (TempData["ErrorDetails"] != null && TempData["ErrorDetails"] != "")
         {
-			<div class="alert alert-danger" role="alert">
-				<p><span class="glyphicon glyphicon-remove-circle"></span>  <b>Error:</b> @Html.Raw(TempData["ErrorDetails"]).</p>
-			</div>
-		}
+            <div class="alert alert-danger" role="alert">
+                <p><span class="glyphicon glyphicon-remove-circle"></span>  <b>Error:</b> @Html.Raw(TempData["ErrorDetails"]).</p>
+            </div>
+        }
 
-		@Html.Partial("RunningJobs", Model)
+        <p>
+            Select group: @Html.DropDownList("group", (List<SelectListItem>)ViewBag.Groups, "All --", null)
+        </p>
 
-		if (jobGroups.Count == 0)
-		{ 
-			<div class="alert alert-danger" role="alert">There are no jobs in the service!</div>
-		}
-		else
-		{
-			<table class="table table-condensed table-bordered">
-			@foreach (string group in jobGroups)
-			{
-				<tr class="info">
-					<th colspan="5">Group: @group</th>
-				</tr>
-			
-				var groupMatcher = Quartz.Impl.Matchers.GroupMatcher<JobKey>.GroupEquals(group);
-				var jobKeys = Model.GetJobKeys(groupMatcher);
+        @Html.Partial("RunningJobs", Model)
 
-				if (jobKeys.Result.Count > 0)
-				{
-					<tr class="active">
-						<th>Job Name</th>
-						<th>Type</th>
-						<th>Details</th>
-						<th>Triggers</th>
-						<th>Options</th>
-					</tr>
-					foreach (var jobKey in jobKeys.Result)
-					{
-						var detail = Model.GetJobDetail(jobKey).Result;
-						var triggers = Model.GetTriggersOfJob(jobKey).Result;
-					
-						<tr>
-							<td><b>@jobKey.Name</b></td>
-							<td>
-								@detail.JobType<br />
+        if (jobGroups.Count == 0)
+        {
+            <div class="alert alert-danger" role="alert">There are no jobs in the service!</div>
+        }
+        else
+        {
+            <table class="table table-condensed table-bordered">
+                @foreach (string jgroup in jobGroups)
+                {
+                    if (jgroup == group || group == "")
 
-								<small class="wrap">
-								@foreach (string s in @detail.JobDataMap.Keys)
-								{
-									<br />@s @:= @detail.JobDataMap[s]
-								}	
-								</small>
-							</td>
-							
-							<td>@detail.Description</td>
-							<td>
-								<table class="table table-condensed table-bordered" style="font-size:12px">
-									<tr class="success">
-										<th>Trigger Name</th>
-										<th>Group</th>
-										<th>Type</th>
-										<th>State</th>
-										<th>Next Run</th>
-										<th>Last Run</th>
-									</tr>
-									@foreach (ITrigger trigger in triggers)
-									{
-										DateTimeOffset? nextFireTime = trigger.GetNextFireTimeUtc();
-										DateTimeOffset? previousFireTime = trigger.GetPreviousFireTimeUtc();
+                    {
+                        <tr class="info">
+                            <th colspan="5">Group: @group</th>
+                        </tr>
 
-										string cron = "";
-										if (trigger.GetType().Name == "CronTriggerImpl")
-										{ // see all types at http://quartznet.sourceforge.net/apidoc/2.0/html/html/aa29bd05-549f-5ceb-e59b-2e6ada9b1efb.htm
-											cron = ((Quartz.Impl.Triggers.CronTriggerImpl)trigger).CronExpressionString;
-										}
-									
-										<tr class="warning">
-											<td>@trigger.Key.Name</td>
-											<td>@trigger.Key.Group</td>
-											<td>@trigger.GetType().Name</td>
-											<td>
-												@{
-													TriggerState state = Model.GetTriggerState(trigger.Key).Result;
-													string label = "";
-													switch (state)
-													{
-														case TriggerState.Blocked:
-															label = "warning";
-															break;
-														case TriggerState.Complete:
-															label = "success";
-															break;
-														case TriggerState.Error:
-															label = "danger";
-															break;
-														case TriggerState.None:
-															label = "default";
-															break;
-														case TriggerState.Normal:
-															label = "primary";
-															break;
-														case TriggerState.Paused:
-															label = "default";
-															break;
-														default:
-															label = "primary";
-															break;
-													}
-												}
-												<span class="label label-@label">@state</span>
-											</td>
-											<td>@(nextFireTime.HasValue ? @nextFireTime.Value.LocalDateTime.ToString() : "N/A")</td>
-											<td>@(previousFireTime.HasValue ? @previousFireTime.Value.LocalDateTime.ToString() : "N/A")</td>
-										</tr>
-			
-										if (cron != "")
-										{
-											<tr class="warning">
-												<td colspan="6"><b>Scheduler: @QuartzHelper.GetCronExpressionDescription(cron)</b></td>
-											</tr>
-										}
-									}
-								</table>
-							</td>
-							<td class="text-center edit_links">
-								@Html.ActionLink(" ", "JobLogs", new { name = @jobKey.Name, group = @jobKey.Group }, new { @class="glyphicon glyphicon-list-alt", title="View last logs", data_toggle="modal", data_target="#logs", style="color:#5cb85c" })
-								@Html.ActionLink(" ", "Edit", "Job", new { name = @jobKey.Name, group = @jobKey.Group }, new { @class="glyphicon glyphicon-pencil", title="Edit associated job" })
-							</td>
-						</tr>
-					}
-				}
-			}
-			</table>
-		}
-	}
+                        var groupMatcher = Quartz.Impl.Matchers.GroupMatcher<JobKey>.GroupEquals(jgroup);
+                        var jobKeys = Model.GetJobKeys(groupMatcher);
+
+                        if (jobKeys.Result.Count > 0)
+                        {
+                            <tr class="active">
+                                <th>Job Name</th>
+                                <th>Type</th>
+                                <th>Details</th>
+                                <th>Triggers</th>
+                                <th>Options</th>
+                            </tr>
+                            foreach (var jobKey in jobKeys.Result)
+                            {
+                                var detail = Model.GetJobDetail(jobKey).Result;
+                                var triggers = Model.GetTriggersOfJob(jobKey).Result;
+
+                                <tr>
+                                    <td><b>@jobKey.Name</b></td>
+                                    <td>
+                                        @detail.JobType<br />
+
+                                        <small class="wrap">
+                                            @foreach (string s in @detail.JobDataMap.Keys)
+                                            {
+                                                <br />@s @:= @detail.JobDataMap[s]
+                                            }
+                                        </small>
+                                    </td>
+
+                                    <td>@detail.Description</td>
+                                    <td>
+                                        <table class="table table-condensed table-bordered" style="font-size:12px; margin-bottom: 0;">
+                                            <tr class="success">
+                                                <th style="display:none">Trigger Name</th>
+                                                <th style="display:none">Group</th>
+                                                <th>Type</th>
+                                                <th>Priority/State</th>
+                                                <th>Run Info</th>
+                                            </tr>
+                                            @foreach (ITrigger trigger in triggers)
+                                            {
+                                                DateTimeOffset? nextFireTime = trigger.GetNextFireTimeUtc();
+                                                DateTimeOffset? previousFireTime = trigger.GetPreviousFireTimeUtc();
+
+                                                string cron = "";
+                                                if (trigger.GetType().Name == "CronTriggerImpl")
+                                                { // see all types at http://quartznet.sourceforge.net/apidoc/2.0/html/html/aa29bd05-549f-5ceb-e59b-2e6ada9b1efb.htm
+                                                    cron = ((Quartz.Impl.Triggers.CronTriggerImpl)trigger).CronExpressionString;
+                                                }
+
+                                                <tr class="warning">
+                                                    <td style="display:none">@trigger.Key.Name</td>
+                                                    <td style="display:none">@trigger.Key.Group</td>
+                                                    <td>@trigger.GetType().Name</td>
+                                                    <td>
+                                                        <span class="badge" data-toggle="tooltip" title="Priority">@trigger.Priority</span>
+                                                        @{
+                                                            TriggerState state = Model.GetTriggerState(trigger.Key).Result;
+                                                            string label = "";
+                                                            switch (state)
+                                                            {
+                                                                case TriggerState.Blocked:
+                                                                    label = "warning";
+                                                                    break;
+                                                                case TriggerState.Complete:
+                                                                    label = "success";
+                                                                    break;
+                                                                case TriggerState.Error:
+                                                                    label = "danger";
+                                                                    break;
+                                                                case TriggerState.None:
+                                                                    label = "default";
+                                                                    break;
+                                                                case TriggerState.Normal:
+                                                                    label = "primary";
+                                                                    break;
+                                                                case TriggerState.Paused:
+                                                                    label = "default";
+                                                                    break;
+                                                                default:
+                                                                    label = "primary";
+                                                                    break;
+                                                            }
+                                                        }
+                                                        <span class="label label-@label" data-toggle="tooltip" title="State">@state</span>
+                                                    </td>
+                                                    <td>
+                                                        Last: @(previousFireTime.HasValue ? @previousFireTime.Value.LocalDateTime.ToString() : "N/A")<br />
+                                                        Next: @(nextFireTime.HasValue ? @nextFireTime.Value.LocalDateTime.ToString() : "N/A")
+                                                    </td>
+                                                </tr>
+
+                                                if (cron != "")
+                                                {
+                                                    <tr class="warning">
+                                                        <td colspan="5">
+                                                            <b>Scheduler: @QuartzHelper.GetCronExpressionDescription(cron)</b>
+                                                            <div class="pull-right">
+                                                                @if (state == TriggerState.Paused)
+                                                                {
+                                                                    @Html.ActionLink(" ", "ResumeTrigger", "InstanceJob", new { name = @trigger.Key.Name, group = @trigger.Key.Group }, new { @class = "glyphicon glyphicon-play", title = "Resume job trigger", style = "color:#5cb85c" });
+                                                                }
+                                                                else
+                                                                {
+                                                                    @Html.ActionLink(" ", "PauseTrigger", "InstanceJob", new { name = @trigger.Key.Name, group = @trigger.Key.Group }, new { @class = "glyphicon glyphicon-pause", title = "Pause job trigger", style = "color:#5cb85c" });
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+
+                                            }
+                                        </table>
+                                    </td>
+                                    <td class="text-center edit_links">
+                                        @Html.ActionLink(" ", "Logs", "InstanceJob", new { name = @jobKey.Name, group = @jobKey.Group }, new { @class = "glyphicon glyphicon-list-alt", title = "View last logs", data_toggle = "modal", data_target = "#logs", style = "color:#5cb85c" })
+                                        @Html.ActionLink(" ", "Edit", "InstanceJob", new { name = @jobKey.Name, group = @jobKey.Group }, new { @class = "glyphicon glyphicon-pencil", title = "Edit associated job" })
+                                        <br />
+                                        @Html.ActionLink(" ", "Run", "InstanceJob", new { name = @jobKey.Name, group = @jobKey.Group }, new { @class = "glyphicon glyphicon-hand-right", title = "Run job now", style = "color:#5cb85c" })
+                                        @Html.ActionLink(" ", "Delete", "InstanceJob", new { name = @jobKey.Name, group = @jobKey.Group }, new { @class = "glyphicon glyphicon-remove", title = "Delete job", style = "color:#CC0000" })
+                                    </td>
+
+                                </tr>
+                            }
+
+                        }
+                    }
+                }
+            </table>
+        }
+    }
 }
 
 <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="logs">
-  <div class="modal-dialog modal-lg">
-	<div class="modal-content">
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title" id="myModalLabel">View Logs for <b>@ViewBag.Group.@ViewBag.Name</b> (last 100 records)</h4>
-		</div>
-		<div class="modal-body">
-			<span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
-			Please wait ...
-		</div>
-		<div class="modal-footer">
-			<button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
-		</div>
-	</div>
-  </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="myModalLabel">View Logs for <b>@ViewBag.Group.@ViewBag.Name</b> (last 100 records)</h4>
+            </div>
+            <div class="modal-body">
+                <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
+                Please wait ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @Html.ActionLink("View jobs list", "Index", "Job", null, new { @class = "btn btn-info" })
 
+<div class="time pull-right"></div>
+
 <script>
 
+	var tOutTime = null;
 	$(document).ready(function () {
-		$(".menu_service").css("color", "white");
+
 
 		// this will remove all the data in the modal onClose, to force reload on reopen
 		$('#logs').on("hidden.bs.modal", function () {
 			$(this).removeData("bs.modal");
 		});
+
+		// refresh server time - every minute
+		refreshServerTime();
+
+		$("#group").on("change", function () {
+		    top.location.href = "?group=" + $(this).val();
+		});
 	});
+
+	function refreshServerTime() {
+		tOutTime = null;
+
+		$.ajax({
+			type: "GET",
+			url: "@Url.Action("GetServerTime")",
+			data: "",
+			success: function (result) {
+				var date = new Date(result);
+				$(".time").html("Server time is " + FormatDateTime(date));
+				tOutTime = setTimeout(refreshServerTime, 60 * 1000);
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				$(".time").html("<div class=\"alert-danger\" role=\"alert\">Error getting server time!</div>");
+			}
+		});
+	}
 
 </script>

@@ -2,117 +2,148 @@
 @using QuartzSchedulerWeb.Classes
 @{
     ViewBag.Title = "Jobs list";
+    string group = (string)ViewBag.Group;
 }
 
 <h2>Jobs list</h2>
 <br />
 
-<table class="table table-condensed table-bordered">
-    <tr class="info">
-		<th>
-            @Html.DisplayNameFor(model => model.JobName)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.JobType)
-        </th>
-		<th>
-            Parameters
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CronExpression)
-        </th>
-		<th>
-			Trigger
-		</th>
-        <th>
-            @Html.DisplayNameFor(model => model.Enabled)
-        </th>
-        <th></th>
-    </tr>
-
-@if (Model.Count() == 0)
-{ 
-	<tr>
-		<td colspan="7" class="text-center">There are no jobs defined!</td>
-	</tr>
+@if (TempData["ErrorDetails"] != null && TempData["ErrorDetails"] != "")
+{
+    <div class="alert alert-danger" role="alert">
+        <p><span class="glyphicon glyphicon-remove-circle"></span>  <b>Error:</b> @Html.Raw(TempData["ErrorDetails"]). Please check your database connection.</p>
+    </div>
 }
-    
-@foreach (var item in Model) {
-    <tr class="@(item.Enabled?"":"warning")">
-		<td>
-            <b>@Html.DisplayFor(modelItem => item.JobName)</b><br />
-			<span class="label label-default" title="Group">@Html.DisplayFor(modelItem => item.GroupName)</span>
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.JobType)
-			<br />
-			(@Html.DisplayFor(modelItem => item.Type.TypeName))
-        </td>
-		<td class="wrap">
-			@foreach (var param in item.JobParams)
-			{
-				@param.ParamKey @:= @param.ParamValue<br />
-			}
-		</td>
-        <td>
-			@QuartzHelper.GetCronExpressionDescription(item.CronExpression)
-			<br />
-			<kbd>@Html.DisplayFor(modelItem => item.CronExpression)</kbd>
-        </td>
-		<td>
-			@Html.DisplayFor(modelItem => item.TriggerName)<br />
-			<span class="label label-default" title="Group">@Html.DisplayFor(modelItem => item.TriggerGroup)</span>
-		</td>
-        <td class="text-center">
-            @Html.DisplayFor(modelItem => item.Enabled)
-        </td>
-        <td class="edit_links">
-            @Html.ActionLink(" ", "Edit", new { id = item.ID }, new { @class="glyphicon glyphicon-pencil", title="Edit" })
-            @Html.ActionLink(" ", "Details", new { id=item.ID }, new { @class="glyphicon glyphicon-th-list", title="Details" })
-            @Html.ActionLink(" ", "Delete", new { id=item.ID }, new { @class="glyphicon glyphicon-remove", title="Delete" })
-			@Html.ActionLink(" ", "SyncJobs", new { id=item.ID }, new { @class="glyphicon glyphicon-refresh", title="Sync this job" })
-			@Html.ActionLink(" ", "JobLogs", "Home", new { name = item.JobName, group = item.GroupName }, new { @class="glyphicon glyphicon-list-alt", title="View last logs", data_toggle="modal", data_target="#logs", style="color:#5cb85c" })
-        </td>
-    </tr>
-}
-    
-</table>
+else
+{
+    <p>
+        Select group: @Html.DropDownList("group", (List<SelectListItem>)ViewBag.Groups, "All --", null)
+    </p>
 
-<p>
-	<a href="@Url.Action("SyncJobs")" class="btn btn-danger">
-		<span class="glyphicon glyphicon-refresh"></span>
-		Sync Jobs
-	</a>
-	@Html.ActionLink("Create New ...", "Create", null, new { @class="btn btn-info" })
-</p>
+    <table class="table table-condensed table-bordered">
+        <tr class="info">
+            <th>
+                @Html.DisplayNameFor(model => model.GroupName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.JobName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.JobType)
+            </th>
+            <th>
+                Parameters
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Priority)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CronExpression)
+            </th>
+            <th style="display: none">
+                Trigger
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Enabled)
+            </th>
+            <th></th>
+        </tr>
+
+        @if (Model.Count() == 0)
+        {
+            <tr>
+                <td colspan="8" class="text-center">There are no jobs defined!</td>
+            </tr>
+        }
+
+        @foreach (var item in Model.Where(o => o.GroupName == group || group == ""))
+        {
+            <tr class="@(item.Enabled?"":"warning")">
+                <td>
+                    <span class="label label-default" title="Group">@Html.DisplayFor(modelItem => item.GroupName)</span>
+                </td>
+                <td>
+                    <b>@Html.DisplayFor(modelItem => item.JobName)</b>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.JobType)
+                    <br />
+                    (@Html.DisplayFor(modelItem => item.Type.TypeName))
+                </td>
+                <td class="wrap">
+                    @foreach (var param in item.JobParams)
+                    {
+                        @param.ParamKey @:= @param.ParamValue<br />
+                    }
+                </td>
+                <td class="text-center">
+                    <span class="badge">@item.Priority</span>
+                </td>
+                <td>
+                    @QuartzHelper.GetCronExpressionDescription(item.CronExpression)
+                    <br />
+                    <kbd>@Html.DisplayFor(modelItem => item.CronExpression)</kbd>
+                </td>
+                <td style="display: none">
+                    @Html.DisplayFor(modelItem => item.TriggerName)<br />
+                    <span class="label label-default" title="Group">@Html.DisplayFor(modelItem => item.TriggerGroup)</span>
+                </td>
+                <td class="text-center">
+                    @Html.DisplayFor(modelItem => item.Enabled)
+                </td>
+                <td class="edit_links">
+                    @Html.ActionLink(" ", "Edit", new { id = item.ID }, new { @class = "glyphicon glyphicon-pencil", title = "Edit" })
+                    @Html.ActionLink(" ", "Details", new { id = item.ID }, new { @class = "glyphicon glyphicon-th-list", title = "Details" })
+                    @Html.ActionLink(" ", "Delete", new { id = item.ID }, new { @class = "glyphicon glyphicon-remove", title = "Delete" })
+                    @Html.ActionLink(" ", "SyncJobs", new { id = item.ID }, new { @class = "glyphicon glyphicon-refresh", title = "Sync this job" })
+                    @Html.ActionLink(" ", "Logs", "InstanceJob", new { name = item.JobName, group = item.GroupName }, new { @class = "glyphicon glyphicon-list-alt", title = "View last logs", data_toggle = "modal", data_target = "#logs", style = "color:#5cb85c" })
+                </td>
+            </tr>
+        }
+
+    </table>
+
+    <p>
+        <a href="@Url.Action("SyncJobs")" class="btn btn-danger">
+            <span class="glyphicon glyphicon-refresh"></span>
+            Sync Jobs
+        </a>
+        @Html.ActionLink("Create New ...", "Create", null, new { @class = "btn btn-info" })
+    </p>
+}
 
 <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden="true" id="logs">
-  <div class="modal-dialog modal-lg">
-	<div class="modal-content">
-		<div class="modal-header">
-			<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-			<h4 class="modal-title" id="myModalLabel">View Logs for <b>@ViewBag.Group.@ViewBag.Name</b> (last 100 records)</h4>
-		</div>
-		<div class="modal-body">
-			<span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
-			Please wait ...
-		</div>
-		<div class="modal-footer">
-			<button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
-		</div>
-	</div>
-  </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="myModalLabel">View Logs for <b>@ViewBag.Group.@ViewBag.Name</b> (last 100 records)</h4>
+            </div>
+            <div class="modal-body">
+                <span class="glyphicon glyphicon-refresh glyphicon-spin"></span>
+                Please wait ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
 
-	$(document).ready(function () {
-		$(".menu_jobs").css("color", "white");
+    $(document).ready(function () {
+        $(".menu_jobs").css("color", "white");
 
-		// this will remove all the data in the modal onClose, to force reload on reopen
-		$('#logs').on("hidden.bs.modal", function () {
-			$(this).removeData("bs.modal");
-		});
-	});
+        // this will remove all the data in the modal onClose, to force reload on reopen
+        $('#logs').on("hidden.bs.modal", function () {
+            $(this).removeData("bs.modal");
+        });
+
+        $("#group").on("change", function () {
+            top.location.href = "?group=" + $(this).val();
+        });
+
+    });
 
 </script>

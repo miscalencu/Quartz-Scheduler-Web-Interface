@@ -27,19 +27,26 @@ namespace QuartzSchedulerWeb.Controllers
 		}
 
         // GET: /Home/
-        public async Task<ActionResult> Index()
+        public async Task<ActionResult> Index(string group)
         {
 			IScheduler scheduler = null;
 			ViewBag.ErrorDetails = "";
 			try
 			{
-				scheduler = await QuartzHelper.GetScheduler();
+                List<SelectListItem> items = db.Jobs.Select(o => new SelectListItem() { Text = o.GroupName, Value = o.GroupName }).Distinct().OrderBy(o => o.Text).ToList();
+                ViewBag.Groups = items;
+                if (group == null && items.Count() > 0)
+                {
+                    group = items.First().Text;
+                }
+
+                scheduler = await QuartzHelper.GetScheduler();
 			}
 			catch (Exception ex)
 			{
 				ViewBag.ErrorDetails = ex.Message;
 			}
-
+            ViewBag.Group = group;
             return View("Index", scheduler);
         }
 
@@ -88,18 +95,16 @@ namespace QuartzSchedulerWeb.Controllers
 			return RedirectToAction("Index");
 		}
 
-		public ViewResult JobLogs(string name, string group)
-		{
-			ViewBag.Name = name;
-			ViewBag.Group = group;
-			return View(db.Logs.Where(o => o.Message.StartsWith("*** Job " + group + "." + name + " ")).OrderByDescending(o => o.Date).Take(100));
-		}
+        public DateTime GetServerTime()
+        {
+            return DateTime.Now;
+        }
 
-		#region TEST METHODS
+        #region TEST METHODS
 
-		public string TestRequest()
+        public async Task<string> TestRequest()
 		{
-			string url = "http://ro14lth3b8h12/QuartzSchedulerWeb/Ws/service.asmx";
+			string url = "http://localhost/QuartzSchedulerWeb/Ws/service.asmx";
 			string method = "HelloWorld ";
 			string param_keys = "param";
 			string param_values = "val1";
@@ -155,39 +160,56 @@ namespace QuartzSchedulerWeb.Controllers
 
 			if (valid)
 			{
-				// Get the stream containing content returned by the server.
-				using (WebResponse response = request.GetResponse())
-				{
-					// Read the content.
-					Stream dataStream = response.GetResponseStream();
-					StreamReader reader = new StreamReader(dataStream);
-					result = reader.ReadToEnd();
-				}
+                string content = "";
+                CancellationToken ct = new CancellationToken();
+                using (ct.Register((state) => ((HttpWebRequest)state).Abort(), request, false))
+                {
+                    using (WebResponse response = await request.GetResponseAsync())
+                    {
+                        try
+                        {
+                            // Read the content.
+                            Stream dataStream = response.GetResponseStream();
+                            StreamReader reader = new StreamReader(dataStream);
+                            content = reader.ReadToEnd();
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ct.IsCancellationRequested)
+                                // the WebException will be available as Exception.InnerException
+                                throw new OperationCanceledException(ex.Message, ex, ct);
+                            // Abort not caled, throw the original Exception
+                            throw;
+                        }
 
-				try
-				{
-					XmlDocument doc = new XmlDocument();
-					doc.LoadXml(result);
-					result = doc.DocumentElement.InnerText;
-				}
-				catch (Exception ex)
-				{
-					if (result.Length > 100)
-						result = result.Substring(0, 100); // get first 100 characters
+                        try
+                        {
+                            XmlDocument doc = new XmlDocument();
+                            doc.LoadXml(content);
+                            content = doc.DocumentElement.InnerText;
+                        }
+                        catch (Exception ex)
+                        {
+                            if (content.Length > 100)
+                                content = content.Substring(0, 100); // get first 100 characters
 
-					result = result + " (XML error: " + ex.Message + ")";
-				}
+                            content = content + " (XML error: " + ex.Message + ")";
+                        }
 
-				return result;
-			}
-			else
+                       result = content;
+                    }
+                }
+
+            }
+            else
 			{
-				return  "invalid parameters";
+				result = "invalid parameters";
 			}
+            return result;
 		}
 		public string TestCall()
 		{
-			Thread.Sleep(15 * 60 * 1000);
+			Thread.Sleep(1 * 60 * 1000); // 1 minute
 			return "test sleep OK";
 		}
 
