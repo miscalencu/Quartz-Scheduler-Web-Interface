@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This file contains job definitions in schema version 2.0 format -->
+
+<job-scheduling-data xmlns="http://quartznet.sourceforge.net/JobSchedulingData" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0">
+
+  <processing-directives>
+    <overwrite-existing-data>true</overwrite-existing-data>
+  </processing-directives>
+
+  <schedule>
+
+    <job>
+        <name>dateJob</name>
+        <group>GR</group>
+        <description>date job 1</description>
+        <job-type>JobFilesFolders.TextFile, JobFilesFolders</job-type>
+        <durable>true</durable>
+        <recover>false</recover>
+	<job-data-map>
+            <entry>
+                <key>show</key>
+                <value>date</value>
+            </entry>
+	</job-data-map>
+    </job>
+
+    <job>
+        <name>timeJob</name>
+        <group>GR</group>
+        <description>time job 1</description>
+        <job-type>JobFilesFolders.TextFile, JobFilesFolders</job-type>
+        <durable>true</durable>
+        <recover>false</recover>
+	<job-data-map>
+            <entry>
+                <key>show</key>
+                <value>time</value>
+            </entry>
+	</job-data-map>
+    </job>
+
+    <job>
+        <name>clearJob</name>
+        <group>GR</group>
+        <description>clear job 1</description>
+        <job-type>JobFilesFolders.TextFile, JobFilesFolders</job-type>
+        <durable>true</durable>
+        <recover>false</recover>
+	<job-data-map>
+            <entry>
+                <key>show</key>
+                <value>clear</value>
+            </entry>
+	</job-data-map>
+    </job>
+
+    <trigger>
+      <simple>
+        <name>dateTrigger</name>
+        <group>GR</group>
+        <description>main</description>
+        <job-name>dateJob</job-name>
+        <job-group>GR</job-group>
+        <misfire-instruction>SmartPolicy</misfire-instruction>
+        <repeat-count>-1</repeat-count>
+        <repeat-interval>20000</repeat-interval>
+      </simple>
+    </trigger>
+
+    <trigger>
+      <simple>
+        <name>timeTrigger</name>
+        <group>GR</group>
+        <description>main</description>
+        <job-name>timeJob</job-name>
+        <job-group>GR</job-group>
+        <misfire-instruction>SmartPolicy</misfire-instruction>
+        <repeat-count>-1</repeat-count>
+        <repeat-interval>5000</repeat-interval>
+      </simple>
+    </trigger>
+
+   <trigger>
+      <simple>
+        <name>clearTrigger</name>
+        <group>GR</group>
+        <description>clear</description>
+        <job-name>clearJob</job-name>
+        <job-group>GR</job-group>
+        <misfire-instruction>SmartPolicy</misfire-instruction>
+        <repeat-count>-1</repeat-count>
+        <repeat-interval>60000</repeat-interval>
+      </simple>
+    </trigger>
+
+  </schedule>
+</job-scheduling-data>

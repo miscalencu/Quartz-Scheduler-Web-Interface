@@ -1,0 +1,275 @@
+﻿@model QuartzSchedulerWeb.Models.Job
+@using System.Collections;
+@using QuartzSchedulerWeb.Models;
+@{
+    ViewBag.Title = "Create job";
+}
+
+<h2>Create new job</h2>
+<br />
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+		<b>Job details:</b>
+        <hr />
+        @Html.ValidationSummary(true)
+		@Html.Hidden("ID", "0")
+
+		<div class="form-group">
+            @Html.LabelFor(model => model.JobName, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextBoxFor(model => model.JobName, new { @class="form-control" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.JobName)
+            </div>
+        </div>
+
+		<div class="form-group">
+            @Html.LabelFor(model => model.Details, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextAreaFor(model => model.Details, new { @class="form-control" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.Details)
+            </div>
+        </div>
+
+		<div class="form-group">
+            @Html.LabelFor(model => model.GroupName, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextBoxFor(model => model.GroupName, new { @class="form-control" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.GroupName)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TypeID, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+				@Html.DropDownListFor(o => o.TypeID, new SelectList(((IEnumerable<JobType>)ViewBag.JobTypes).Select(x => new SelectListItem { Value = x.ID.ToString(), Text = x.TypeName }), "Value", "Text"), "Choose -->", new { @class = "form-control col-md-2" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.TypeID)
+            </div>
+        </div>
+
+		<div class="form-group" id="divJobType">
+            @Html.LabelFor(model => model.JobType, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextBoxFor(model => model.JobType, new { @class = "form-control col-md-2" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.JobType)
+            </div>
+        </div>
+		
+		<div class="form-group" id="divJobTypeParams">
+            <label class="col-md-2 control-label">Job Params</label>
+            <div class="col-md-4" id="divJobTypeParamsInputs">
+                
+			</div>
+			<div class="col-md-6" id="divJobTypeParamsErrors">
+                
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.CronExpression, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextBoxFor(model => model.CronExpression, new { @class = "form-control col-md-2" })
+				<span class="CronExpressionDesc control-label">(None)</span>
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.CronExpression)
+            </div>
+        </div>
+
+		<div class="form-group">
+            @Html.LabelFor(model => model.TriggerName, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextBoxFor(model => model.TriggerName, new { @class = "form-control col-md-2" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.TriggerName)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TriggerGroup, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.TextBoxFor(model => model.TriggerGroup, new { @class = "form-control col-md-2" })
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.TriggerGroup)
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Enabled, new { @class = "control-label col-md-2" })
+            <div class="col-md-4">
+                @Html.EditorFor(model => model.Enabled)
+			</div>
+			<div class="col-md-6">
+                @Html.ValidationMessageFor(model => model.Enabled)
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("<< Back to List", "Index", null, new { @class="btn-info btn" })
+</div>
+
+<script>
+
+	var jtypes = new Array();
+	$(document).ready(function () {
+		$("#divJobType").hide();
+		$("#divJobTypeParams").hide();
+		$("#CronExpression").css({"top": "-1000px", "left":"-1000px", "position": "absolute"});
+		$(".CronExpressionDesc").parent().css("padding-top", "10px");
+
+		@{
+			int i = 0;
+			foreach (JobType item in (IEnumerable<JobType>)ViewBag.JobTypes)
+			{
+				<text>
+					jtypes[@(item.ID)] = new Object();
+					jtypes[@(item.ID)].id = @item.ID;
+					jtypes[@(item.ID)].name = "@item.TypeName";
+					jtypes[@(item.ID)].assembly = "@item.TypeAssembly";
+					jtypes[@(item.ID)].keys = "@item.ParamKeys";
+				</text>
+				i++;
+			}
+		}
+
+		$("#TypeID").on("change", function() {
+			CheckType();
+		});
+
+		$("#CronExpression").css("width", "320").cronGen();
+		$(document.forms[0]).on("submit", function() {
+			return CheckForm();
+		});
+	});
+
+	function FillCronExpressionDetails() {
+		var cron = $("#CronExpression").val();
+
+		$(".CronExpressionDesc").html("Please wait ... ");
+		$.ajax({
+			type: "GET",
+			url: "@Url.Action("GetCronExpressionDetails", "Job")",
+			data: "cron=" + cron,
+			success: function (result) {
+				$(".CronExpressionDesc").html(result);
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				$(".CronExpressionDesc").html("Error!");			
+			}
+		});
+	}
+
+	function CheckForm(){
+		//debugger;
+		return true;
+
+		// don't use jQuery as they are not added in DOM.
+		var cont = document.getElementById("divJobTypeParamsInputs");
+		var inputs = cont.getElementsByTagName("input");
+		for (var i = 0; i < inputs.length; i++) {
+			if(inputs[i].value === "") {
+				$("#divJobTypeParamsErrors").html("<span class='field-validation-error'>Please fill in all parameters.</span>");
+				return false;
+			}
+		}
+
+		$("#divJobTypeParamsErrors").html("");
+		return true;
+	}
+
+	function CheckType() {
+		// reset type and hide
+		$("#divJobType").hide();
+		$("#JobType").removeAttr("readonly");
+		$("#JobType").val("");
+		// reset params
+		$("#divJobTypeParams").hide();
+
+		if(isNaN($("#TypeID").val())) {
+			// Choose				
+		}
+		else {
+			var jtype = jtypes[$("#TypeID").val()];
+
+			if(jtype.assembly === "") { // custom
+				$("#divJobType").show();
+			}
+			else { // predefined
+				$("#divJobType").show();
+				$("#JobType").attr("readonly", "readonly");
+				$("#JobType").val(jtype.assembly);
+			}
+
+			// show parameters
+			var inputs = "";
+
+			if(jtype.keys !== "") {
+					
+				var key = jtype.keys.split("|");
+				for (var i = 0; i < key.length; i++) {
+					inputs += "<div class=\"row form-group\">";
+					inputs += "<label class=\"col-md-4 control-label\">" + key[i] + "</label>";
+					inputs += "<div class=\"col-md-8\"><input type=\"text\" name=\"parameters\" class=\"form-control\" style=\"max-width:250px;\" value=\"\" /></div>";
+					inputs += "</div>";
+				}
+
+				$("#divJobTypeParamsInputs").html(inputs);
+				$("#divJobTypeParams").show();
+			}
+		}
+	}
+
+	// hack for remote validation
+	function initializeRemotelyValidatingElementsWithAdditionalFields($form) {
+		var remotelyValidatingElements = $form.find("[data-val-remote]");
+
+		$.each(remotelyValidatingElements, function (i, element) {
+			var $element = $(element);
+
+			var additionalFields = $element.attr("data-val-remote-additionalfields");
+
+			if (additionalFields.length == 0) return;
+
+			var rawFieldNames = additionalFields.split(",");
+
+			var fieldNames = $.map(rawFieldNames, function (fieldName) { return fieldName.replace("*.", ""); });
+
+			$.each(fieldNames, function (i, fieldName) {
+				$form.find("#" + fieldName).change(function () {
+					// force re-validation to occur
+					$element.removeData("previousValue");
+					$element.valid();
+				});
+			});
+		});
+	}
+
+	$(document).ready(function() {
+		initializeRemotelyValidatingElementsWithAdditionalFields($(document.forms[0]));
+	});
+
+</script>
+<script src="~/Scripts/cronGen.min.js"></script>

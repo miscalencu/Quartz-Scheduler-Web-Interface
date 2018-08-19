@@ -1,0 +1,75 @@
+﻿@model Quartz.IScheduler
+@using Quartz;
+@using Quartz.Impl;
+@using Quartz.Impl.Matchers;
+@using QuartzSchedulerWeb.Classes;
+
+<div id="runningjobs">
+	@{
+	
+	IList<IJobExecutionContext> runningJobs = Model.GetCurrentlyExecutingJobs();
+
+	if (runningJobs.Count > 0)
+		{ 
+			<table class="table table-condensed table-bordered">
+				<tr>
+					<th class="danger" colspan="4">Running jobs</th>
+				</tr>
+				<tr class="info">
+					<th>Job Name</th>
+					<th>Job Type</th>
+					<th>Fired at</th>
+					<th class="text-center">Options</th>
+				</tr>
+				@foreach (IJobExecutionContext job in runningJobs)
+				{
+					<tr>
+						<td>@job.JobDetail.Key</td>
+						<td>
+							@job.JobDetail.JobType<br />
+
+							<small class="wrap">
+							@foreach (string s in @job.JobDetail.JobDataMap.Keys)
+							{
+								<br />@s @:= @job.JobDetail.JobDataMap[s]
+							}	
+							</small>
+						</td>
+						<td>
+							@job.FireTimeUtc.Value.LocalDateTime
+							(@(DateTime.Now.Subtract(job.FireTimeUtc.Value.LocalDateTime).ToString().Substring(0, 8)) passed)
+						</td>
+						<td class="text-center">
+							@Html.ActionLink(" ", "InterruptJob", new { name = job.JobDetail.Key.Name, group = job.JobDetail.Key.Group, instance = job.FireInstanceId }, new { @class = "glyphicon glyphicon-hand-down", style = "color:#CC0000", title = "Interrupt job!", onclick = "return confirm('Are you sure you want to interrupt this running job?');" })
+						</td>
+					</tr>	 
+				}
+			</table>
+		}
+	}
+</div>
+
+<script>
+
+	var tOut = null;
+	$(document).ready(function () {
+		tOut = setTimeout(refreshRunningJobs, 1000);
+	});
+
+	function refreshRunningJobs() {
+		tOut = null;
+
+		$.ajax({
+			type: "GET",
+			url: escape('@Url.Action("RunningJobs")'),
+			data: "",
+			success: function (result) {
+				$("#runningjobs").html(result);
+			},
+			error: function (xhr, ajaxOptions, thrownError) {
+				$("#runningjobs").html("<div class=\"alert alert-danger\" role=\"alert\">Error getting running jobs!</div>");
+			}
+		});
+	}
+
+</script>

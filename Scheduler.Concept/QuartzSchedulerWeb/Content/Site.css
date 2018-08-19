@@ -1,0 +1,133 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Set width on the form input elements since they're 100% wide by default */
+input[type="text"],
+input[type="password"] {
+    max-width: 280px;
+}
+
+/* styles for validation helpers */
+.field-validation-error {
+    color: #b94a48;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+input.input-validation-error {
+    border: 1px solid #b94a48;
+}
+
+input[type="checkbox"].input-validation-error {
+    border: 0 none;
+}
+
+.validation-summary-errors {
+    color: #b94a48;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+.form-horizontal input[type='text'], .form-horizontal select {
+	max-width: 350px;
+}
+
+.form-horizontal, .dl-horizontal {
+padding: 15px;
+margin-bottom: 20px;
+border: 1px solid #ddd;
+border-radius: 4px;
+}
+
+.dl-horizontal dt, .dl-horizontal dd {
+	padding: 4px;
+}
+
+#cronGenPopOver {
+	padding: 3px;
+	font-size: 18px;
+	float: right;
+}
+
+.popover-footer {
+	padding: 0 10px 10px 0;
+}
+
+.edit_links, kbd {
+	white-space: nowrap;
+}
+
+.edit_links a {
+	padding: 7px 3px 0 3px;
+}
+
+.edit_links a.glyphicon-remove {
+	color: #CC0000;
+	}
+.edit_links a.glyphicon-th-list {
+	color: #4cae4c;
+	}
+
+.form-group {
+	margin-bottom: 5px;
+}
+
+.label {
+	font-size: 11px;
+}
+
+.glyphicon-spin {
+    -webkit-animation: spin 1000ms infinite linear;
+    animation: spin 1000ms infinite linear;
+}
+
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
+@keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+}
+
+.alert-danger a {
+	color: #a94442;
+	font-weight: bold;
+}
+
+.wrap {
+	-ms-word-break: break-all;
+     /* Be VERY careful with this, breaks normal words wh_erever */
+     word-break: break-all;
+
+     /* Non standard for webkit */
+     word-break: break-word;
+
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+    hyphens: auto;
+}
