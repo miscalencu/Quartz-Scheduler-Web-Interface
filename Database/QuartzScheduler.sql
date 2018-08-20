@@ -83,6 +83,7 @@ CREATE TABLE [dbo].[Job](
 	[Details] [nvarchar](500) NOT NULL,
 	[TypeID] [int] NOT NULL,
 	[JobType] [nvarchar](250) NOT NULL,
+	[Priority] INT NOT NULL DEFAULT ((1)),
 	[CronExpression] [nvarchar](50) NOT NULL,
 	[TriggerName] [nvarchar](50) NOT NULL,
 	[TriggerGroup] [nvarchar](50) NOT NULL,
@@ -386,8 +387,8 @@ CREATE TABLE [dbo].[QRTZ_TRIGGERS](
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 
 GO
-SET IDENTITY_INSERT [dbo].[JobType] ON 
 
+SET IDENTITY_INSERT [dbo].[JobType] ON 
 GO
 INSERT [dbo].[JobType] ([ID], [TypeName], [TypeAssembly], [ParamKeys]) VALUES (0, N' Custom ...', N'', N'')
 GO
@@ -396,6 +397,15 @@ GO
 INSERT [dbo].[JobType] ([ID], [TypeName], [TypeAssembly], [ParamKeys]) VALUES (2, N'CallAsmxService', N'JobCaller.CallAsmxService, JobCaller', N'url|method|param_keys|param_values|credentials_user|credentials_pass')
 GO
 SET IDENTITY_INSERT [dbo].[JobType] OFF
+GO
+
+SET IDENTITY_INSERT [dbo].[Job] ON 
+GO
+INSERT [dbo].[Job] ([ID], [GroupName], [JobName], [Details], [TypeID], [JobType], [Priority], [CronExpression], [TriggerName], [TriggerGroup], [Enabled]) VALUES (1, N'TEST', N'Call test service', N'Call test service', 2, N'JobCaller.CallAsmxService, JobCaller', 1, N'0 0 10 1/1 * ? *', N'Call test service', N'TEST', 1)
+GO
+INSERT [dbo].[Job] ([ID], [GroupName], [JobName], [Details], [TypeID], [JobType], [Priority], [CronExpression], [TriggerName], [TriggerGroup], [Enabled]) VALUES (2, N'TEST', N'Call test page', N'Call test page', 1, N'JobCaller.CallPage, JobCaller', 2, N'0 0 11 ? * MON-FRI *', N'Call test page', N'TEST', 1)
+GO
+SET IDENTITY_INSERT [dbo].[Job] OFF
 GO
 
 /****** Object:  Index [IX_JobParam] ******/
