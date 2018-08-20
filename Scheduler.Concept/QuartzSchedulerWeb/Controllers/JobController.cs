@@ -284,6 +284,7 @@ namespace QuartzSchedulerWeb.Controllers
 					ITrigger strigger = TriggerBuilder
 						.Create()
 						.WithIdentity(job.TriggerName, job.TriggerGroup)
+                        .WithPriority(job.Priority)
 						.StartNow()
 						.WithCronSchedule(job.CronExpression)
 						.Build();

@@ -408,6 +408,23 @@ GO
 SET IDENTITY_INSERT [dbo].[Job] OFF
 GO
 
+SET IDENTITY_INSERT [dbo].[JobParam] ON 
+GO
+INSERT [dbo].[JobParam] ([ID], [JobID], [ParamKey], [ParamValue]) VALUES (1, 1, N'url', N'http://localhost/QuartzSchedulerWeb/ws/service.asmx')
+GO
+INSERT [dbo].[JobParam] ([ID], [JobID], [ParamKey], [ParamValue]) VALUES (2, 1, N'method', N'HelloWorld')
+GO
+INSERT [dbo].[JobParam] ([ID], [JobID], [ParamKey], [ParamValue]) VALUES (3, 1, N'param_keys', N'param')
+GO
+INSERT [dbo].[JobParam] ([ID], [JobID], [ParamKey], [ParamValue]) VALUES (4, 1, N'param_values', N'from job')
+GO
+INSERT [dbo].[JobParam] ([ID], [JobID], [ParamKey], [ParamValue]) VALUES (5, 1, N'credentials_user', N'')
+GO
+INSERT [dbo].[JobParam] ([ID], [JobID], [ParamKey], [ParamValue]) VALUES (6, 1, N'credentials_pass', N'')
+GO
+SET IDENTITY_INSERT [dbo].[JobParam] OFF
+GO
+
 /****** Object:  Index [IX_JobParam] ******/
 CREATE UNIQUE NONCLUSTERED INDEX [IX_JobParam] ON [dbo].[JobParam]
 (
