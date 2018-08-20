@@ -15,16 +15,11 @@ namespace JobCaller
 
 		}
 
-        public CancellationTokenSource CancellationToken { get; set; }
-
-        public Task Execute(IJobExecutionContext context)
+        public async Task Execute(IJobExecutionContext context)
 		{
 			try
 			{
-                this.CancellationToken = new CancellationTokenSource();
-                CancellationToken ct = this.CancellationToken.Token;
-                
-                return new Task(() => DoExecute(context), ct);
+                await DoExecute(context);
             }
 			catch (Exception ex)
 			{
@@ -35,7 +30,7 @@ namespace JobCaller
 		}
 
 		SchedulerWebClient wc;
-		public void DoExecute(IJobExecutionContext context)
+		public async Task DoExecute(IJobExecutionContext context)
 		{
 			JobKey key = context.JobDetail.Key;
 			JobDataMap jbDataMap = context.JobDetail.JobDataMap;
@@ -45,45 +40,60 @@ namespace JobCaller
 			string credentials_user = jbDataMap.GetString("credentials_user");
 			string credentials_pass = jbDataMap.GetString("credentials_pass");
 
-			string result = "";
-			using (wc = new SchedulerWebClient())
-			{
-				wc.Timeout = 3 * 60 * 60 * 1000; // 3 hours
+            string result = "";
+            using (wc = new SchedulerWebClient())
+            {
+                context.CancellationToken.Register((state) => ((SchedulerWebClient)state).CancelAsync(), wc, false);
+                wc.Timeout = 3 * 60 * 60 * 1000; // 3 hours
 
-				if (!String.IsNullOrEmpty(credentials_user))
-					wc.Credentials = new NetworkCredential(credentials_user, credentials_pass);
+                if (!String.IsNullOrEmpty(credentials_user))
+                    wc.Credentials = new NetworkCredential(credentials_user, credentials_pass);
 
-				if (saveto != "")
-				{
-					if (!Directory.Exists(saveto))
-						Directory.CreateDirectory(saveto);
+                if (saveto != "")
+                {
+                    if (!Directory.Exists(saveto))
+                        Directory.CreateDirectory(saveto);
 
-					wc.DownloadFile(new Uri(url), saveto + @"\callpage_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".htm");
-					context.Result = "File saved!";
-				}
-				else
-				{
-					result = wc.DownloadString(new Uri(url));
-					try
-					{
-						XmlDocument doc = new XmlDocument();
-						doc.LoadXml(result);
-						result = doc.DocumentElement.InnerText;
-					}
-					catch (XmlException)
-					{
-						if (result.Length > 100)
-							result = result.Substring(0, 100); // get first 100 characters
-					}
-					context.Result = result;
-				}
-			}
+                    wc.DownloadFile(new Uri(url), saveto + @"\callpage_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".htm");
+                    context.Result = "File saved!";
+                }
+                else
+                {
+                    try
+                    {
+                        result = await wc.DownloadStringTaskAsync(new Uri(url));
+                    }
+                    catch (Exception ex)
+                    {
+                        if (context.CancellationToken.IsCancellationRequested)
+                        {
+                            Interrupt();
+                            context.Result = "Job cancelled!";
+                            throw new OperationCanceledException(ex.Message, ex, context.CancellationToken);
+                        }
+                        // Abort not caled, throw the original Exception
+                        throw;
+                    }
+
+                    try
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml(result);
+                        result = doc.DocumentElement.InnerText;
+                    }
+                    catch (XmlException)
+                    {
+                        if (result.Length > 100)
+                            result = result.Substring(0, 100); // get first 100 characters
+                    }
+                    context.Result = result;
+                }
+            }
 		}
-
-		public void Interrupt()
+        
+        public void Interrupt()
 		{
-            this.CancellationToken.Cancel();
-			wc.CancelAsync();
+            wc.CancelAsync();
 			wc.Dispose();
 		}
 	}

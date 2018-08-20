@@ -11,28 +11,28 @@ using System.Xml;
 namespace JobCaller
 {
     public class CallAsmxService : IJob
-	{
+    {
         public CallAsmxService()
-		{ 
-		
-		}
+        {
+
+        }
 
         public async Task Execute(IJobExecutionContext context)
-		{
-			try
-			{
-                await DoExecuteAsync(context);
+        {
+            try
+            {
+                await DoExecute(context);
             }
-			catch (Exception ex)
-			{
-				JobExecutionException qe = new JobExecutionException(ex);
-				// qe.RefireImmediately = true;  // this job will refire immediately
-				throw qe;
-			}
-		}
+            catch (Exception ex)
+            {
+                JobExecutionException qe = new JobExecutionException(ex);
+                // qe.RefireImmediately = true;  // this job will refire immediately
+                throw qe;
+            }
+        }
 
-		HttpWebRequest request;
-        public async Task DoExecuteAsync(IJobExecutionContext context)
+        HttpWebRequest request;
+        public async Task DoExecute(IJobExecutionContext context)
         {
             JobKey key = context.JobDetail.Key;
             JobDataMap jbDataMap = context.JobDetail.JobDataMap;
@@ -97,40 +97,46 @@ namespace JobCaller
                 string content = "";
                 using (context.CancellationToken.Register((state) => ((HttpWebRequest)state).Abort(), request, false))
                 {
-                    using (WebResponse response = await request.GetResponseAsync())
+                    try
                     {
-                        try
+                        // initiate the request
+                        using (WebResponse response = await request.GetResponseAsync())
                         {
                             // Read the content.
-                            Stream dataStream = response.GetResponseStream();
-                            StreamReader reader = new StreamReader(dataStream);
-                            content = reader.ReadToEnd();
+                            using (Stream dataStream = response.GetResponseStream())
+                            {
+                                StreamReader reader = new StreamReader(dataStream);
+                                content = await reader.ReadToEndAsync();
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            if (context.CancellationToken.IsCancellationRequested)
-                                // the WebException will be available as Exception.InnerException
-                                throw new OperationCanceledException(ex.Message, ex, context.CancellationToken);
-                            // Abort not caled, throw the original Exception
-                            throw;
-                        }
-
-                        try
-                        {
-                            XmlDocument doc = new XmlDocument();
-                            doc.LoadXml(content);
-                            content = doc.DocumentElement.InnerText;
-                        }
-                        catch (Exception ex)
-                        {
-                            if (content.Length > 100)
-                                content = content.Substring(0, 100); // get first 100 characters
-
-                            content = content + " (XML error: " + ex.Message + ")";
-                        }
-
-                        context.Result = content;
                     }
+                    catch (Exception ex)
+                    {
+                        if (context.CancellationToken.IsCancellationRequested)
+                        {
+                            Interrupt();
+                            context.Result = "Job cancelled!";
+                            throw new OperationCanceledException(ex.Message, ex, context.CancellationToken);
+                        }
+                        // Abort not caled, throw the original Exception
+                        throw;
+                    }
+
+                    try
+                    {
+                        XmlDocument doc = new XmlDocument();
+                        doc.LoadXml(content);
+                        content = doc.DocumentElement.InnerText;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (content.Length > 100)
+                            content = content.Substring(0, 100); // get first 100 characters
+
+                        content = content + " (XML error: " + ex.Message + ")";
+                    }
+
+                    context.Result = content;
                 }
 
                 //request.BeginGetResponse(new AsyncCallback(FinishWebRequest), context);
@@ -143,39 +149,39 @@ namespace JobCaller
         }
 
         private void FinishWebRequest(IAsyncResult result)
-		{
+        {
             IJobExecutionContext context = (IJobExecutionContext)result.AsyncState;
-			string content = "";
+            string content = "";
 
-			// Get the stream containing content returned by the server.
-			using (WebResponse response = request.EndGetResponse(result))
-			{
-				// Read the content.
-				Stream dataStream = response.GetResponseStream();
-				StreamReader reader = new StreamReader(dataStream);
-				content = reader.ReadToEnd();
-			}
+            // Get the stream containing content returned by the server.
+            using (WebResponse response = request.EndGetResponse(result))
+            {
+                // Read the content.
+                Stream dataStream = response.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream);
+                content = reader.ReadToEnd();
+            }
 
-			try
-			{
-				XmlDocument doc = new XmlDocument();
-				doc.LoadXml(content);
-				content = doc.DocumentElement.InnerText;
-			}
-			catch (Exception ex)
-			{
-				if (content.Length > 100)
-					content = content.Substring(0, 100); // get first 100 characters
+            try
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(content);
+                content = doc.DocumentElement.InnerText;
+            }
+            catch (Exception ex)
+            {
+                if (content.Length > 100)
+                    content = content.Substring(0, 100); // get first 100 characters
 
-				content = content + " (XML error: " + ex.Message + ")";
-			}
+                content = content + " (XML error: " + ex.Message + ")";
+            }
 
-			context.Result = content;
-		}
+            context.Result = content;
+        }
 
-		public void Interrupt()
-		{
-			request.Abort();
-		}
-	}
+        public void Interrupt()
+        {
+            request.Abort();
+        }
+    }
 }
